@@ -1,0 +1,10 @@
+# gxpkg generated dependancy file
+build-deps
+
+# compiled object files
+*.o
+*.o[0-9]+
+
+# editor backups
+*~
+
