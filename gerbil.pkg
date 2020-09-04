@@ -1,2 +1,4 @@
 ;;  This is MY PACKAGE!!!
-(package: drewc)
+;; All in drewc/ftw package, relies on clan.
+(package: drewc
+ depend: ("github.com/fare/gerbil-utils"))
