@@ -13,5 +13,6 @@
     "ftw/httpd/endpoint"
     "ftw/httpd/cookies"
     "ftw/httpd"
+    "ftw/timestamp"
     "ftw"
     "ftw/test/all-tests"))
