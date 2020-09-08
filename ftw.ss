@@ -13,4 +13,5 @@ package: drewc
         (import: :drewc/ftw/file)
         (import: :drewc/ftw/shtml5)
         (import: :drewc/ftw/http-status-code)
+        (import: :drewc/ftw/mime-type)
         (import: :std/net/httpd))

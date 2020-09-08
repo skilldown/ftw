@@ -8,9 +8,9 @@ and document file formats such as HTML for similar purpose."[1]
   An alist where the cars are MIME types and the cdrs are list
   of file suffixes for the corresponding type.
 
-#+NAME: mime-type-alist 
-#+BEGIN_SRC scheme 
-  (def mime-type-alist 
+#+NAME: mime-type-alist
+#+BEGIN_SRC scheme
+  (def mime-type-alist
     '(("application/andrew-inset" "ez")
       ("application/cu-seeme" "cu")
       ("application/dsptype" "tsp")
@@ -345,7 +345,7 @@ and document file formats such as HTML for similar purpose."[1]
                       (hash-put! table ext mt))
                     exts)))
         mime-type-alist)
-      table))                         
+      table))
 #+END_SRC
 
 * ~mime-type->extensions~ and ~extension->mime-type~
@@ -360,7 +360,7 @@ and document file formats such as HTML for similar purpose."[1]
 
 * mime-type.ss
 
-#+BEGIN_SRC scheme :noweb yes :tangle "../gerbil/ftw/mime-type.ss" :padline no
+#+BEGIN_SRC scheme :noweb yes :tangle "../ftw/mime-type.ss" :padline no
 ;;; -*- Gerbil -*-
 package: ftw
 (export #t)
@@ -370,8 +370,10 @@ package: ftw
 <<mime-type-table>>
 
 <<extension->mime-type>>
+
 #+END_SRC
+
 * Footnotes
 
 [1] https://en.wikipedia.org/wiki/Media_type
- 
+

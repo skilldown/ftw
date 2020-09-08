@@ -17,5 +17,6 @@
     "ftw/file"
     "ftw/shtml5"
     "ftw/http-status-code"
+    "ftw/mime-type"
     "ftw"
     "ftw/test/all-tests"))
