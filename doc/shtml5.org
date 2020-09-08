@@ -2,11 +2,11 @@
 
 We want HTML5. We want sexp html5. We deserve a gerbil html5!
 
-* Usage 
+* Usage
 
 #+BEGIN_SRC scheme
 > (shtml5-page->string '(ul (li "asd") (hr)))
-;; => 
+;; =>
 "<!DOCTYPE html>\n<ul><li>asd</li><hr></ul>"
 #+END_SRC
 
@@ -15,7 +15,7 @@ We want HTML5. We want sexp html5. We deserve a gerbil html5!
 Sexps are divine, and *[[http://okmij.org/ftp/Scheme/SXML.html][SXML]]* unites a markup language with
 S-expressions. All that's needed is a tiny shim.
 
-#+BEGIN_SRC scheme :tangle "../gerbil/shtml5.ss"
+#+BEGIN_SRC scheme :tangle "../ftw/shtml5.ss"
   ;;; -*- Gerbil -*-
   (export shtml5-page->string shtml5->string)
   (import :std/xml
