@@ -11,4 +11,5 @@ package: drewc
         (import: :drewc/ftw/httpd/cookies)
         (import: :drewc/ftw/timestamp)
         (import: :drewc/ftw/file)
+        (import: :drewc/ftw/shtml5)
         (import: :std/net/httpd))

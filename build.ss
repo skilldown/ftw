@@ -15,5 +15,6 @@
     "ftw/httpd"
     "ftw/timestamp"
     "ftw/file"
+    "ftw/shtml5"
     "ftw"
     "ftw/test/all-tests"))

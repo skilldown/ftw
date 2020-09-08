@@ -16,6 +16,7 @@ Often when using *FTW!* we just want a simple import. This module does just that
           (import: :drewc/ftw/httpd/cookies)
           (import: :drewc/ftw/timestamp)
           (import: :drewc/ftw/file)
+          (import: :drewc/ftw/shtml5)
           (import: :std/net/httpd))
 #+end_src
 
