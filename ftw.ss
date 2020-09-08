@@ -12,4 +12,5 @@ package: drewc
         (import: :drewc/ftw/timestamp)
         (import: :drewc/ftw/file)
         (import: :drewc/ftw/shtml5)
+        (import: :drewc/ftw/http-status-code)
         (import: :std/net/httpd))

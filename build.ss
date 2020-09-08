@@ -16,5 +16,6 @@
     "ftw/timestamp"
     "ftw/file"
     "ftw/shtml5"
+    "ftw/http-status-code"
     "ftw"
     "ftw/test/all-tests"))

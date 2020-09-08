@@ -23,7 +23,7 @@ https://en.hwikipedia.org/wiki/List_of_HTTP_status_codes
 * file: http-status-code.ss
 
 
-#+BEGIN_SRC scheme :tangle "../gerbil/ftw/http-status-code.ss" :padline no
+#+BEGIN_SRC scheme :tangle "../ftw/http-status-code.ss" :padline no
   ;;; -*- Gerbil -*-
 
   (export #t)
