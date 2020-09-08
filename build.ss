@@ -14,5 +14,6 @@
     "ftw/httpd/cookies"
     "ftw/httpd"
     "ftw/timestamp"
+    "ftw/file"
     "ftw"
     "ftw/test/all-tests"))

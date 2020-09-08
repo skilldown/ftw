@@ -2,13 +2,13 @@ Files
 
 We do a lot with files as well!
 
-#+BEGIN_SRC scheme :padline no :tangle "../gerbil/ftw/file.ss"
+#+BEGIN_SRC scheme :padline no :tangle "../ftw/file.ss"
   ;;; -*- Gerbil -*-
   package: file
   (export #t)
   (import :ftw/mime-type :ftw/timestamp
-          (only-in :gerbil/gambit/os 
-                   file-info-last-modification-time 
+          (only-in :gerbil/gambit/os
+                   file-info-last-modification-time
                    file-info)
           :std/pregexp :std/srfi/1 :std/srfi/13 :std/misc/process)
 
@@ -17,7 +17,7 @@ We do a lot with files as well!
 
   (def (file-mime-type pathname)
     (string-drop-right (run-process ["file" "--mime" "--brief" pathname]) 1))
-    
+
   (def (file-content-type pathname)
     (let* ((ext (file-extension pathname))
            (type (when ext (extension->mime-type ext))))
