@@ -1,5 +1,12 @@
 #+TITLE: Endpoints
 
+
+*NOTE:* This documentation and code is not in sync with the endpoint
+code used in the project.  The code actually used is similar, but more
+sophisticated.  Refer to ftw/ftw/httpd/endpoint.org for the current
+implementation.
+
+
 We need to somehow match a URL to an action we wish to perform on its
 behalf. There could also be pieces of it that we want as
 variables. Thus, ~endpoint-dispatcher~ came to be.
