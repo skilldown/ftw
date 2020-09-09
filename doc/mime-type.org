@@ -362,7 +362,7 @@ and document file formats such as HTML for similar purpose."[1]
 
 #+BEGIN_SRC scheme :noweb yes :tangle "../ftw/mime-type.ss" :padline no
 ;;; -*- Gerbil -*-
-package: ftw
+
 (export #t)
 
 <<mime-type-alist>>

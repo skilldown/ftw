@@ -1,5 +1,5 @@
 ;;; -*- Gerbil -*-
-package: file
+
 (export #t)
 (import :ftw/mime-type :ftw/timestamp
         (only-in :gerbil/gambit/os

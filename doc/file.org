@@ -4,7 +4,7 @@ We do a lot with files as well!
 
 #+BEGIN_SRC scheme :padline no :tangle "../ftw/file.ss"
   ;;; -*- Gerbil -*-
-  package: file
+
   (export #t)
   (import :ftw/mime-type :ftw/timestamp
           (only-in :gerbil/gambit/os

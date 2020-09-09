@@ -1,5 +1,5 @@
 ;;; -*- Gerbil -*-
-package: ftw
+
 (export #t)
 
 (def mime-type-alist
