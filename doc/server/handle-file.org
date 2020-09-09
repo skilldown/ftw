@@ -3,10 +3,10 @@ We need to serve files sometimes.
 
 * Usage
 
-#+BEGIN_SRC scheme :tangle "../../gerbil/server/handle-file-test.ss"
+#+BEGIN_SRC scheme :tangle "../../ftw/httpd/handle-file-test.ss"
   (export #t)
   (import :ftw/server :ftw/server/handle-file
-          :clan/utils/base :std/net/request :std/generic)
+          :clan/base :std/net/request :std/generic)
 
   (defclass (test-handle-file-server ftw-server)
     (not-found))
@@ -76,12 +76,12 @@ We need to serve files sometimes.
 
 * file: ftw/server/handle-file.ss
 
-#+BEGIN_SRC scheme :tangle "../../gerbil/server/handle-file.ss" :padline no
+#+BEGIN_SRC scheme :tangle "../../ftw/httpd/handle-file.ss" :padline no
   ;;; -*- Gerbil -*-
   (export static-file-handler)
 
   (import :ftw/http-status-code :ftw/file
-          :clan/utils/base
+          :clan/base
           :gerbil/gambit/bytes :gerbil/gambit/os
           :std/net/httpd :std/generic :std/sugar :std/pregexp :std/srfi/1)
 

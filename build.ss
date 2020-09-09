@@ -12,6 +12,8 @@
     "ftw/httpd/endpoint-test"
     "ftw/httpd/endpoint"
     "ftw/httpd/cookies"
+    "ftw/httpd/handle-file"
+    "ftw/httpd/handle-file-test"
     "ftw/httpd"
     "ftw/timestamp"
     "ftw/file"
