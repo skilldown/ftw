@@ -11,15 +11,20 @@ browser — keeping a user logged-in, for example. It remembers stateful
 information for the stateless HTTP protocol."
 --https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies
 
+* Standard
+
+Cookies operation conforms to the RFC-6265 "HTTP State Management Mechanism" standard.
+
+https://tools.ietf.org/html/rfc6265
+
 * Request Cookies
 
   We get requests coming in that have cookies in a cookie jar. We'll transfer
   them over to our own cookie that that's better suited to our tastes, AKA
   alist.
 
-#+begin_src gerbil :tangle "../src/httpd/cookies.ss"
-  (import :drewc/ftw/httpd/handler :std/srfi/13)
-  (export #t)
+#+NAME: request-cookies
+#+begin_src scheme
 
   (def (http-request-cookies req)
     (let* ((hs (http-request-headers*))
@@ -37,10 +42,10 @@ information for the stateless HTTP protocol."
 #+end_src
 
 
-* Set-Cookie Syntax 
+* Set-Cookie Syntax
 
-#+BEGIN_SRC html
-Set-Cookie: <cookie-name>=<cookie-value> 
+#+BEGIN_EXAMPLE
+Set-Cookie: <cookie-name>=<cookie-value>
 Set-Cookie: <cookie-name>=<cookie-value>; Expires=<date>
 Set-Cookie: <cookie-name>=<cookie-value>; Max-Age=<non-zero-digit>
 Set-Cookie: <cookie-name>=<cookie-value>; Domain=<domain-value>
@@ -53,41 +58,334 @@ Set-Cookie: <cookie-name>=<cookie-value>; SameSite=Lax
 
 // Multiple directives are also possible, for example:
 Set-Cookie: <cookie-name>=<cookie-value>; Domain=<domain-value>; Secure; HttpOnly
-#+END_SRC
+#+END_EXAMPLE
 
 * The Cookie Class
 
-
+#+NAME: response-cookies
 #+BEGIN_SRC scheme
-  (defclass cookie
+  ;;; Response Cookie class object
+  (defstruct cookie
     (name value
      expires max-age domain path
-     secure http-only samesite))    
+     secure http-only samesite)
+    transparent: #t
+    constructor: :init!)
+
+
+  ;;; Override constructor for cookie to allow setting values and
+  ;;; defaults
+  (defmethod {:init! cookie}
+    (lambda (self
+             name
+             value
+             expires: (expires #f)
+             max-age: (max-age #f)
+             domain: (domain #f)
+             path: (path #f)
+             secure: (secure #f)
+             http-only: (http-only #f)
+             samesite: (samesite #f))
+      (struct-instance-init! self
+                             name
+                             value
+                             expires
+                             max-age
+                             domain
+                             path
+                             secure
+                             http-only
+                             samesite)))
+
+
+  ;;; Valid values for SameSite cookie flag
+  (def +samesite-valid-values+
+       ["None" "Strict" "Lax"])
+
+
+  ;;; Format cookie expires date as a rfc-1123 timestamp, or #f
+  (def (cookie-expires-date cookie)
+       (let (date (cookie-expires cookie))
+         (if date
+             (rfc-1123-date<-date date)
+             #f)))
+
+  ;;; Validate the SameSite value
+  (def (cookie-samesite-valid cookie)
+       (let* ((ss (cookie-samesite cookie))
+              (val (member ss +samesite-valid-values+))
+              (val (and val
+                        (list? val)
+                        (car val))))
+         val))
 #+END_SRC
+
+
+** Date values for Expires
+
+The expires field defaults to #f, which will prevent the option from
+being included in the cookie string.
+
+When using the expires field is used, it is expected to be an SRFI-19
+date record.  Many tools are provided for dealing with dates and times
+in the :clan/timestamp module.  Consult that module for reference.
+The Expires date will be formatted using `rfc-1123-date<-date`.
+
+An example of using the current time as the Expire value:
+
+#+begin_example
+(rfc-1123-date<-date (date<-unix-timestamp (current-unix-timestamp)))
+=> "Thu, 10 Sep 2020 14:30:28 GMT"
+#+end_example
+
+Setting the Expires value to one week in the future:
+
+#+begin_example
+(rfc-1123-date<-date (date<-unix-timestamp (+ one-week (current-unix-timestamp))))
+=> "Thu, 17 Sep 2020 14:31:04 GMT"
+#+end_example
+
+
+** Time Values for Max-Age
+
+The value for the max-age field is the maximum value in seconds that
+the cookie can remain value.  After that time the cookie should not be
+returned by the client.
+
+If both the Max-Age and Expires are set, the Max-Age value will be
+used by the client.
+
+From RFC 6265:
+
+#+begin_quote
+4.1.2.2.  The Max-Age Attribute
+
+   The Max-Age attribute indicates the maximum lifetime of the cookie,
+   represented as the number of seconds until the cookie expires.  The
+   user agent is not required to retain the cookie for the specified
+   duration.  In fact, user agents often evict cookies due to memory
+   pressure or privacy concerns.
+
+      NOTE: Some existing user agents do not support the Max-Age
+      attribute.  User agents that do not support the Max-Age attribute
+      ignore the attribute.
+
+   If a cookie has both the Max-Age and the Expires attribute, the Max-
+   Age attribute has precedence and controls the expiration date of the
+   cookie.  If a cookie has neither the Max-Age nor the Expires
+   attribute, the user agent will retain the cookie until "the current
+   session is over" (as defined by the user agent).
+#+end_quote
 
 * Cookie to String
 
-#+BEGIN_SRC scheme
-  (import :ftw/timestamp :clan/utils/base)
+To be useful we must convert the cookie object into a string for use
+with the Set-Cookie header.
 
+Each cookie must use its own Set-Cookie header.
+
+#+NAME: response-cookie-to-string
+#+BEGIN_SRC scheme
+
+
+  ;;; Convert response cookie object to a string suitable for use as a
+  ;;; 'Set-Cookie:' header.
   (def (cookie->string cookie)
 
-    (def (cookie-expires-date cookie)
-      (let (date (cookie-expires cookie))
-        (when date (rfc-1123-date<-date date))))
+       (def (format-if-needed reader cookie format-string (true-value #f))
+            (let* ((raw-value (reader cookie))
+                   (value (or (and raw-value
+                                   true-value)
+                              raw-value)))
+              (if value
+                  (if format-string
+                      (format format-string value)
+                      value)
+                  "")))
 
-    (def ?? (reader cookie format-string (value? #t))
-      (let (value (reader cookie))
-        (if value
-          (format format value)
-          (void))))
-    (string-append  
-     (cookie-name cookie)"="(cookie-value cookie)
-     (?? cookie-expires-date cookie "; Expires=~A")
-     (?? cookie-max-age cookie "; Max-Age=~A~")
-     (?? cookie-domain cookie "; Domain=~A~")
-     (cookie-path cookie)
-     (cookie-secure cookie)
-     (cookie-http-only cookie)))                              
+       (string-append
+        (cookie-name cookie) "=" (cookie-value cookie)
+        (format-if-needed cookie-expires-date cookie "; Expires=~A")
+        (format-if-needed cookie-max-age cookie "; Max-Age=~A")
+        (format-if-needed cookie-domain cookie "; Domain=~A")
+        (format-if-needed cookie-path cookie "; Path=~A")
+        (format-if-needed cookie-secure cookie #f "; Secure")
+        (format-if-needed cookie-http-only cookie #f "; HttpOnly")
+        (format-if-needed cookie-samesite-valid cookie "; Same-Site=~A")))
 #+END_SRC
 
+* Testing Response Cookies
+
+Below is a quick testing of the conversion to string of a few
+varieties of cookies.
+
+#+BEGIN_SRC scheme :results drawer :tangle no :post pretty-output(data=*this*)
+
+    (import :std/format
+            :drewc/ftw/timestamp
+            :drewc/ftw/httpd/cookies)
+
+    (with-output-to-string
+      ""
+      (lambda ()
+
+        (printf "Simple cookie:  \"~a\"\n\n"
+                (cookie->string (let ((c (cookie "CookieName" "CookieValue")))
+                                  c)))
+
+        (printf "Http-Only cookie:  \"~a\"\n\n"
+                (cookie->string (let ((c (cookie "CookieName" "CookieValue")))
+                                  (cookie-http-only-set! c #t)
+                                  c)))
+
+        (printf "Domain cookie:  \"~a\"\n\n"
+                (cookie->string (let ((c (cookie "CookieName" "CookieValue")))
+                                  (cookie-domain-set! c "http://mysite.com/")
+                                  c)))
+
+        (printf "Path cookie:  \"~a\"\n\n"
+                (cookie->string (let ((c (cookie "CookieName" "CookieValue")))
+                                  (cookie-path-set! c "/index.htm")
+                                  c)))
+
+        (printf "Secure cookie:  \"~a\"\n\n"
+                (cookie->string (let ((c (cookie "CookieName" "CookieValue")))
+                                  (cookie-secure-set! c #t)
+                                  c)))
+
+        (printf "Same Site Lax cookie:  \"~a\"\n\n"
+                (cookie->string (let ((c (cookie "CookieName" "CookieValue")))
+                                  (cookie-samesite-set! c "Lax")
+                                  c)))
+
+        (printf "Same Site Strict cookie:  \"~a\"\n\n"
+                (cookie->string (let ((c (cookie "CookieName" "CookieValue")))
+                                  (cookie-samesite-set! c "Strict")
+                                  c)))
+
+        (printf "Same Site None cookie:  \"~a\"\n\n"
+                (cookie->string (let ((c (cookie "CookieName" "CookieValue")))
+                                  (cookie-samesite-set! c "None")
+                                  c)))
+
+        (printf "Expires cookie:  \"~a\"\n\n"
+                (cookie->string (let ((c (cookie "CookieName" "CookieValue")))
+                                  (cookie-expires-set!
+                                   c
+                                   (date<-unix-timestamp
+                                    (+ one-week (current-unix-timestamp))))
+                                  c)))
+
+        (printf "Max age cookie:  \"~a\"\n\n"
+                (cookie->string (let ((c (cookie "CookieName" "CookieValue")))
+                                  (cookie-max-age-set!
+                                   c
+                                   (+ one-week (current-unix-timestamp)))
+                                  c)))
+
+        (printf "Kitchen sink cookie:  \"~a\"\n\n"
+                (cookie->string (let ((c (cookie "CookieName" "CookieValue")))
+                                  (cookie-max-age-set!
+                                   c
+                                   (+ one-week (current-unix-timestamp)))
+                                  (cookie-expires-set!
+                                   c
+                                   (date<-unix-timestamp
+                                    (+ one-week (current-unix-timestamp))))
+                                  (cookie-samesite-set! c "Strict")
+                                  (cookie-secure-set! c #t)
+                                  (cookie-path-set! c "/index.htm")
+                                  (cookie-domain-set! c "http://mysite.com/")
+                                  (cookie-http-only-set! c #t)
+                                  c)))
+
+        ))
+
+#+END_SRC
+
+#+RESULTS:
+:results:
+Simple cookie:  "CookieName=CookieValue"
+
+Http-Only cookie:  "CookieName=CookieValue; HttpOnly"
+
+Domain cookie:  "CookieName=CookieValue; Domain=http://mysite.com/"
+
+Path cookie:  "CookieName=CookieValue; Path=/index.htm"
+
+Secure cookie:  "CookieName=CookieValue; Secure"
+
+Same Site Lax cookie:  "CookieName=CookieValue; Same-Site=Lax"
+
+Same Site Strict cookie:  "CookieName=CookieValue; Same-Site=Strict"
+
+Same Site None cookie:  "CookieName=CookieValue; Same-Site=None"
+
+Expires cookie:  "CookieName=CookieValue; Expires=Fri, 18 Sep 2020 00:31:02 GMT"
+
+Max age cookie:  "CookieName=CookieValue; Max-Age=1600389062657015562"
+
+Kitchen sink cookie:  "CookieName=CookieValue; Expires=Fri, 18 Sep 2020 00:31:02 GMT; Max-Age=1600389062657031059; Domain=http://mysite.com/; Path=/index.htm; Secure; HttpOnly; Same-Site=Strict"
+
+:end:
+
+** Notes on testing block
+
+The code block used for testing required some special handling for
+org-babel to insert reasonable results.  Work around of this type are
+frustrating, but sometimes the power of the tools is a few tweaks.  We
+will attempt to address those requirements here to avoid confusion
+with the layout of the test code.
+
+In this setup the default scheme implementation for geiser is gambit
+and the gambit executable is set to `gxi` so that gerbil is used in
+place of base gambit.
+
+The is an issue with the gambit implementation of geiser's org-babel
+that prevents it from correctly recording output results.  As a result
+the block is setup to collect a returned value as the result.  Each
+test writes their output into a common string buffer that is returned
+at the end.  The formatted string returned from the block is wrapped
+by org-babel such that the newline characters are still escaped.  To
+display the string in the typical pretty way it requires post
+formatting.  The `:post` header argument is used to pass the result
+through another block for formatting.
+
+Below are two versions of the post formatting block.  The first, and
+preferred, version reads the value as a lisp string and prints it.
+The second version uses an echo command ran in a shell to accomplish
+the same thing.
+
+#+NAME: pretty-output
+#+BEGIN_SRC emacs-lisp :var data="" :results output
+(princ (read data))
+#+END_SRC
+
+#+NAME: pretty-output-sh
+#+BEGIN_SRC shell :var data="" :results output
+echo $data
+#+END_SRC
+
+
+* /file/ cookies.ss
+
+#+begin_src scheme :noweb yes :tangle "../ftw/httpd/cookies.ss"
+  ;; -*- Gerbil -*-
+  (export #t)
+  (import :drewc/ftw/httpd/handler
+          :std/srfi/13
+          :std/format
+          :ftw/timestamp
+          :clan/base)
+
+  ;;;; Handling of cookie headers
+
+  ;;; Request cookies
+  <<request-cookies>>
+
+  ;;; Response cookies
+  <<response-cookies>>
+
+  <<response-cookie-to-string>>
+
+#+end_src
