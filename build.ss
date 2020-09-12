@@ -12,6 +12,7 @@
     "ftw/httpd/endpoint-test"
     "ftw/httpd/endpoint"
     "ftw/httpd/cookies"
+    "ftw/httpd/reply"
     "ftw/httpd/handle-file"
     "ftw/httpd/handle-file-test"
     "ftw/httpd"
