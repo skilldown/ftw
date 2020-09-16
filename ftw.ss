@@ -11,6 +11,7 @@ package: drewc
         (import: :drewc/ftw/httpd/cookies)
         (import: :drewc/ftw/httpd/reply)
         (import: :drewc/ftw/httpd/handle-file)
+        (import: :drewc/ftw/httpd/endpoint)
         (import: :drewc/ftw/timestamp)
         (import: :drewc/ftw/file)
         (import: :drewc/ftw/shtml5)
